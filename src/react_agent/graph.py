@@ -16,6 +16,53 @@ from react_agent.state import InputState, State
 from react_agent.tools import TOOLS
 from react_agent.utils import load_chat_model
 
+
+def _generate_state_summary(state: State) -> str:
+    """Generate a summary of the current state for the prompt."""
+    summary_parts = []
+    
+    # Authentication status
+    if state.user_email and state.user_cedula:
+        if state.is_authenticated:
+            summary_parts.append(f"✅ USUARIO AUTENTICADO: {state.user_email} (Cédula: {state.user_cedula})")
+        else:
+            summary_parts.append(f"⚠️ CREDENCIALES DISPONIBLES: {state.user_email} (Cédula: {state.user_cedula}) - NECESITA AUTENTICACIÓN")
+    else:
+        summary_parts.append("❌ AUTENTICACIÓN PENDIENTE: Email y cédula requeridos")
+    
+    # Receipt validation status
+    if state.payment_receipt_validated:
+        summary_parts.append("✅ COMPROBANTE VALIDADO: Imagen del comprobante verificada")
+    else:
+        summary_parts.append("❌ COMPROBANTE PENDIENTE: Requiere imagen del comprobante")
+    
+    # Bank validation status
+    if state.bank_validated and state.payment_bank:
+        summary_parts.append(f"✅ BANCO VALIDADO: {state.payment_bank}")
+    else:
+        summary_parts.append("❌ BANCO PENDIENTE: Requiere validación del banco")
+    
+    # Payment data extraction status
+    if state.payment_amount > 0 and state.payment_reference and state.payment_date:
+        summary_parts.append(f"✅ DATOS EXTRAÍDOS: Monto: ${state.payment_amount}, Referencia: {state.payment_reference}, Fecha: {state.payment_date}")
+    else:
+        summary_parts.append("❌ EXTRACCIÓN DE DATOS PENDIENTE: Requiere monto, referencia y fecha")
+    
+    # Order validation status
+    if state.order_validated and state.payment_order:
+        summary_parts.append(f"✅ ORDEN VALIDADA: {state.payment_order}")
+    else:
+        summary_parts.append("❌ ORDEN PENDIENTE: Requiere número de orden")
+    
+    # Payment search status
+    if state.payment_found and state.payment_status:
+        summary_parts.append(f"✅ PAGO ENCONTRADO: Estado: {state.payment_status}")
+    else:
+        summary_parts.append("❌ BÚSQUEDA DE PAGO PENDIENTE: Requiere búsqueda en el sistema")
+    
+    return "\n".join(summary_parts)
+
+
 # Define the function that calls the model
 
 
@@ -36,9 +83,13 @@ async def call_model(
     # Initialize the model with tool binding. Change the model or add more tools here.
     model = load_chat_model(runtime.context.model).bind_tools(TOOLS)
 
+    # Generate state summary for the prompt
+    state_summary = _generate_state_summary(state)
+    
     # Format the system prompt. Customize this to change the agent's behavior.
     system_message = runtime.context.system_prompt.format(
-        system_time=datetime.now(tz=UTC).isoformat()
+        system_time=datetime.now(tz=UTC).isoformat(),
+        state_summary=state_summary
     )
 
     # Get the model's response

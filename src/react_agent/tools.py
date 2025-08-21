@@ -191,6 +191,35 @@ async def search_payment_tool(
             "success": False,
             "error": "Pago no encontrado",
             "message": f"No se encontró ningún pago con la referencia {payment_reference} por el monto ${payment_amount} en la fecha {payment_date}",
+            "escalate_to": "technical_team",
+            "escalation_reason": "Pago no encontrado después de validar todos los datos. Se requiere revisión manual del sistema de pagos."
+        }
+
+
+async def escalate_to_team_tool(team_id: str, reason: str) -> dict[str, Any]:
+    """Escalar caso a un equipo especializado.
+
+    Args:
+        team_id: ID del equipo al que se escala (ej: "1234567" para casos de frustración)
+        reason: Razón por la cual se escala el caso
+    """
+    # Simulate escalation
+    escalation_success = random.choice([True, True, True, False])  # 75% success rate
+    
+    if escalation_success:
+        ticket_id = f"ESC-{random.randint(100000, 999999)}"
+        return {
+            "success": True,
+            "escalated": True,
+            "ticket_id": ticket_id,
+            "team_id": team_id,
+            "message": f"Caso escalado exitosamente al equipo {team_id}. Ticket: {ticket_id}. El usuario será contactado por un especialista en breve.",
+        }
+    else:
+        return {
+            "success": False,
+            "error": "Error en escalación",
+            "message": "No se pudo escalar el caso en este momento. Intenta nuevamente o contacta al supervisor.",
         }
 
 
@@ -201,4 +230,5 @@ TOOLS: List[Callable[..., Any]] = [
     validate_bank_tool,
     validate_order_tool,
     search_payment_tool,
+    escalate_to_team_tool,
 ]
