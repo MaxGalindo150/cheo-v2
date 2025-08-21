@@ -213,12 +213,18 @@ async def escalate_to_team_tool(team_id: str, reason: str) -> dict[str, Any]:
             "escalated": True,
             "ticket_id": ticket_id,
             "team_id": team_id,
+            "needs_escalation": True,
+            "sent_to_team_id": team_id,
+            "escalation_reason": reason,
             "message": f"Caso escalado exitosamente al equipo {team_id}. Ticket: {ticket_id}. El usuario será contactado por un especialista en breve.",
         }
     else:
         return {
             "success": False,
             "error": "Error en escalación",
+            "needs_escalation": True,
+            "sent_to_team_id": "",
+            "escalation_reason": reason,
             "message": "No se pudo escalar el caso en este momento. Intenta nuevamente o contacta al supervisor.",
         }
 

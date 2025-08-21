@@ -73,3 +73,8 @@ class State(InputState):
     order_validated: bool = field(default=False)
     payment_found: bool = field(default=False)
     payment_status: str = field(default="")
+    
+    # Escalation fields
+    needs_escalation: bool = field(default=False)
+    sent_to_team_id: str = field(default="")
+    escalation_reason: str = field(default="")

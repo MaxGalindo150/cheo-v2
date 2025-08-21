@@ -60,6 +60,13 @@ def _generate_state_summary(state: State) -> str:
     else:
         summary_parts.append("❌ BÚSQUEDA DE PAGO PENDIENTE: Requiere búsqueda en el sistema")
     
+    # Escalation status
+    if state.needs_escalation:
+        if state.sent_to_team_id:
+            summary_parts.append(f"🚨 CASO ESCALADO: Enviado al equipo {state.sent_to_team_id}. Razón: {state.escalation_reason}")
+        else:
+            summary_parts.append(f"⚠️ ESCALACIÓN REQUERIDA: {state.escalation_reason}")
+    
     return "\n".join(summary_parts)
 
 
